@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математическая ферма</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #8BC34A;
+            --accent: #FFC107;
+            --dark: #2E7D32;
+            --light: #C8E6C9;
+            --text: #212121;
+            --background: #F1F8E9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .stat-item {
+            background-color: var(--dark);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .stat-item img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .farm-container {
+            flex: 3;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .farm-plot {
+            aspect-ratio: 1;
+            background-color: #A1887F;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #5D4037;
+        }
+        
+        .farm-plot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
+        .farm-plot.planted {
+            background-color: #8BC34A;
+        }
+        
+        .plant {
+            width: 80%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .plant img {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.5s ease;
+        }
+        
+        .plant .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.5s linear;
+        }
+        
+        .action-required {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 15px;
+            height: 15px;
+            background-color: #F44336;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        
+        .shop-container {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .shop-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 10px;
+        }
+        
+        .shop-items {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .shop-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .shop-item:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .shop-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        
+        .shop-item-info {
+            flex: 1;
+        }
+        
+        .shop-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .shop-item-cost {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .shop-item-cost img {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            margin-left: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #757575;
+        }
+        
+        .modal-title {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .problem {
+            font-size: 1.8rem;
+            margin: 25px 0;
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .answer-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn:hover {
+            background-color: var(--dark);
+            transform: translateY(-3px);
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        
+        .correct {
+            color: var(--primary);
+        }
+        
+        .incorrect {
+            color: #F44336;
+        }
+        
+        .achievements-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .achievement {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .achievement.locked {
+            opacity: 0.6;
+        }
+        
+        .achievement img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .achievement-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .achievement-desc {
+            font-size: 0.9rem;
+        }
+        
+        .tutorial {
+            background-color: #E3F2FD;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .tutorial h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+        }
+        
+        .tutorial-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .tutorial-step {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tutorial-step .number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #757575;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .farm-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .answer-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>✨ Математическая ферма ✨</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0xIDE4aC0ydi0yaDJ2MnptMi43NS00SDguNXYtMS41aDcuNXYxLjV6bS4yNS0zVjljMC0xLjEtLjktMi0yLTJIOGMtMS4xIDAtMiAuOS0yIDJ2NGg5eiIvPjwvc3ZnPg==" alt="Уровень">
+                    Уровень: <span id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==" alt="Опыт">
+                    Опыт: <span id="exp">0</span>/<span id="exp-to-next">100</span>
+                </div>
+                <div class="stat-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0yIDE1bC01LTUgMS40MS0xLjQxTDEwIDE0LjE3bDcuNTktNy41OUwxOSA4bC05IDl6Ii8+PC9zdmc+" alt="Деньги">
+                    Деньги: <span id="money">50</span>
+                </div>
+                <div class="stat-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTE3LjY2IDguTDEyIDIuMzUgNi4zNCA4QzQuNzggOS41NiA0IDEwLjU1IDQgMTIuNzJjMCAyLjQzIDEuNjEgNC41MiA0IDUuOTVWMTloNHYtMi4wOGMyLjM5LTEuNDMgNC0zLjUyIDQtNS45NSAwLTIuMTctLjc4LTMuMTYtMi4zNC00Ljcyek03IDE0Yy0xLjY2IDAtMy0xLjM0LTMtM3MxLjM0LTMgMy0zIDMgMS4zNCAzIDMtMS4zNCAzLTMgM3oiLz48L3N2Zz4=" alt="Вода">
+                    Вода: <span id="water">10</span>
+                </div>
+                <div class="stat-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTE3LjY2IDhMMTIgMi4zNSA2LjM0IDhDNC43OCA5LjU2IDQgMTAuNTUgNCAxMi43MmMwIDIuNDMgMS42MSA0LjUyIDQgNS45NVYxOWg0di0yLjA4YzIuMzktMS40MyA0LTMuNTIgNC01Ljk1IDAtMi4xNy0uNzgtMy4xNi0yLjM0LTQuNzJ6TTcgMTRjLTEuNjYgMC0zLTEuMzQtMy0zczEuMzQtMyAzLTMgMyAxLjM0IDMgMy0xLjM0IDMtMyAzeiIvPjwvc3ZnPg==" alt="Удобрения">
+                    Удобрения: <span id="fertilizer">5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="farm-container">
+                <h2>Ваша ферма</h2>
+                <p>Кликайте на пустые участки, чтобы посадить растения. Кликайте на растения для ухода.</p>
+                
+                <div class="farm-grid" id="farm-grid">
+                    <!-- Сгенерируем 25 участков -->
+                </div>
+            </div>
+            
+            <div class="shop-container">
+                <h2 class="shop-title">🏬 Магазин</h2>
+                <div class="shop-items">
+                    <div class="shop-item" data-item="carrot">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY3MjBDIj48cGF0aCBkPSJNMTYgMTBsLTEuNS0xLjUtMS0xTDEwIDQuNSA0IDEwYzAgMy4zIDIuNyA2IDYgNmwxLjQxLTEuNDFjLS4xLS4xLS4xLS4yIDAtLjNsMi44My0yLjgzYy4xLS4xLjItLjEuMyAwTDE2IDE2YzIuNzYgMCA1LTQuNDggNS04cy0yLjI0LTgtNS04eiIvPjwvc3ZnPg==" alt="Морковь">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Морковь</div>
+                            <div class="shop-item-desc">Растет за 30 сек</div>
+                            <div class="shop-item-cost">
+                                Стоимость:
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>5</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="shop-item" data-item="wheat">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgM2wxIDIgMy0xIDIgMS0xIDIgMyAzLTEgMi00IDQtNCA0LTEtMi0zLTMgMS0yLTEgMS0yLTMgMS0yLTItMS0yLTMgMS0yLTEgMS0yLTMgMS0yLTJ6bTAgOGwzIDMgMy0zLTMtM3oiLz48L3N2Zz4=" alt="Пшеница">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Пшеница</div>
+                            <div class="shop-item-desc">Растет за 45 сек</div>
+                            <div class="shop-item-cost">
+                                Стоимость:
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="shop-item" data-item="cow">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMj200MC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjN0Y1NTMwIj48cGF0aCBkPSJNMTIgMTBjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+" alt="Корова">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Корова</div>
+                            <div class="shop-item-desc">Дает молоко</div>
+                            <div class="shop-item-cost">
+                                Стоимость:
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>30</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="shop-item" data-item="chicken">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgMTZjLTIuMjEgMC00IDEuNzktNCA0aDhjMC0yLjIxLTEuNzktNC00LTR6bTAgM2MtLjU1IDAtMS0uNDUtMS0xczAuNDUtMSAxLTEgMSAuNDUgMSAxLS40NSAxLTEgMXptLTYtOGMwLTMuMzEgMi42OS02IDYtNnM2IDIuNjkgNiA2YzAgMy0yLjY3IDUtNiA1cy02LTItNi01em0zIDBjMCAxLjY2IDEuMzQgMyAzIDNzMy0xLjM0IDMtMy0xLjM0LTMtMy0zLTMgMS4zNC0zIDN6Ii8+PC9zdmc+" alt="Курица">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Курица</div>
+                            <div class="shop-item-desc">Несет яйца</div>
+                            <div class="shop-item-cost">
+                                Стоимость:
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resources">
+                    <h3>Ресурсы</h3>
+                    <div class="shop-item">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMjk4MEZGIj48cGF0aCBkPSJNMTcgMTBoLTRWOGg0bS0zLTZINmMtMS4xIDAtMiAuOS0yIDJ2MTZjMCAxLjEuOSAyIDIgMmgxMmMxLjEgMCAyLS45IDItMlY4bC02LTZ6Ii8+PC9zdmc+" alt="Вода">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Вода</div>
+                            <div class="shop-item-cost">
+                                Купить (5):
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="shop-item">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjN0Y1NTMwIj48cGF0aCBkPSJNMTIgMTZjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+" alt="Удобрения">
+                        <div class="shop-item-info">
+                            <div class="shop-item-title">Удобрения</div>
+                            <div class="shop-item-cost">
+                                Купить (3):
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Ik03IDEyaDEwbS0xIDBsLTIgMm0wLTJsMi0yIi8+PC9zdmc+" alt="Деньги">
+                                <span>4</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="achievements-container">
+            <h2>🏆 Достижения</h2>
+            <div class="achievements-grid">
+                <div class="achievement locked" id="ach1">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnpNNi41IDE2LjVMOSAxN2wzLTYgMyA2IDIuNS0uNUwxNSA5LjVWNkg5djMuNUw2LjUgMTYuNXoiLz48L3N2Zz4=" alt="Достижение">
+                    <div class="achievement-title">Первый урожай</div>
+                    <div class="achievement-desc">Соберите первый урожай</div>
+                </div>
+                
+                <div class="achievement locked" id="ach2">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnpNOCIDE3bDEuNS0xLjUtMy41LTMuNS0xLjUgMS41TDEwIDE3bC0yIDJ6bTcuNS0zLjVMMTQgMTdsLTIgMiAyIDIgMy41LTMuNUwxNS41IDE0eiIvPjwvc3ZnPg==" alt="Достижение">
+                    <div class="achievement-title">Математический гений</div>
+                    <div class="achievement-desc">Правильно решите 10 задач</div>
+                </div>
+                
+                <div class="achievement locked" id="ach3">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnpNOCIDE3bDEuNS0xLjUtMy41LTMuNS0xLjUgMS41TDEwIDE3bC0yIDJ6bTcuNS0zLjVMMTQgMTdsLTIgMiAyIDIgMy41LTMuNUwxNS41IDE0eiIvPjwvc3ZnPg==" alt="Достижение">
+                    <div class="achievement-title">Фермер-бизнесмен</div>
+                    <div class="achievement-desc">Заработайте 100 монет</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tutorial">
+            <h3>📚 Как играть</h3>
+            <div class="tutorial-steps">
+                <div class="tutorial-step">
+                    <span class="number">1</span> Купите семена или животных в магазине
+                </div>
+                <div class="tutorial-step">
+                    <span class="number">2</span> Посадите их на свободные участки фермы
+                </div>
+                <div class="tutorial-step">
+                    <span class="number">3</span> Ухаживайте за растениями и животными
+                </div>
+                <div class="tutorial-step">
+                    <span class="number">4</span> Решайте математические задачи для получения урожая
+                </div>
+                <div class="tutorial-step">
+                    <span class="number">5</span> Продавайте урожай для получения денег
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="modal-title">Математическая задача</h2>
+            <div class="problem" id="problem-text">15 + 7 = ?</div>
+            <div class="answer-options" id="answer-options">
+                <button class="answer-btn">22</button>
+                <button class="answer-btn">23</button>
+                <button class="answer-btn">24</button>
+                <button class="answer-btn">25</button>
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>© 2023 Математическая ферма | Образовательная игра для детей и взрослых</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Игровые данные
+        const gameData = {
+            level: 1,
+            exp: 0,
+            expToNext: 100,
+            money: 50,
+            water: 10,
+            fertilizer: 5,
+            correctAnswers: 0,
+            plants: [],
+            achievements: [false, false, false]
+        };
+        
+        // Типы растений и животных
+        const items = {
+            carrot: {
+                name: "Морковь",
+                cost: 5,
+                time: 30, // сек
+                reward: 8,
+                water: 2,
+                fertilizer: 1,
+                icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY3MjBDIj48cGF0aCBkPSJNMTYgMTBsLTEuNS0xLjUtMS0xTDEwIDQuNSA0IDEwYzAgMy4zIDIuNyA2IDYgNmwxLjQxLTEuNDFjLS4xLS4xLS4xLS4yIDAtLjNsMi44My0yLjgzYy4xLS4xLjItLjEuMyAwTDE2IDE2YzIuNzYgMCA1LTQuNDggNS04cy0yLjI0LTgtNS04eiIvPjwvc3ZnPg=="
+            },
+            wheat: {
+                name: "Пшеница",
+                cost: 10,
+                time: 45, // сек
+                reward: 15,
+                water: 3,
+                fertilizer: 2,
+                icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgM2wxIDIgMy0xIDIgMS0xIDIgMyAzLTEgMi00IDQtNCA0LTEtMi0zLTMgMS0yLTEgMS0yLTMgMS0yLTItMS0yLTMgMS0yLTEgMS0yLTMgMS0yLTJ6bTAgOGwzIDMgMy0zLTMtM3oiLz48L3N2Zz4="
+            },
+            cow: {
+                name: "Корова",
+                cost: 30,
+                time: 60, // сек
+                reward: 25,
+                water: 5,
+                fertilizer: 3,
+                icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMj000MC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjN0Y1NTMwIj48cGF0aCBkPSJNMTIgMTBjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+"
+            },
+            chicken: {
+                name: "Курица",
+                cost: 20,
+                time: 40, // сек
+                reward: 12,
+                water: 2,
+                fertilizer: 1,
+                icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZCQzQ0Ij48cGF0aCBkPSJNMTIgMTZjMi4yMSAwIDQgMS43OSA0IDRINmMwLTIuMjEgMS43OS00IDQtNHptMCAzYy0uNTUgMC0xLS40NS0xLTFzLjQ1LTEgMS0xIDEgLjQ1IDEgMS0uNDUgMS0xIDF6bS02LThjMC0zLjMxIDIuNjktNiA2LTZzNiAyLjY5IDYgNmMwIDMtMi42NyA1LTYgNXMtNi0yLTYtNXptMyAwYzAgMS42NiAxLjM0IDMgMyAzczMtMS4zNCAzLTMtMS4zNC0zLTMtMy0zIDEuMzQtMyAzeiIvPjwvc3ZnPg=="
+            }
+        };
+        
+        // Текущий выбранный предмет для посадки
+        let selectedItem = null;
+        
+        // Инициализация игры
+        function initGame() {
+            // Создаем участки фермы
+            const farmGrid = document.getElementById('farm-grid');
+            for (let i = 0; i < 25; i++) {
+                const plot = document.createElement('div');
+                plot.className = 'farm-plot';
+                plot.dataset.index = i;
+                plot.addEventListener('click', handlePlotClick);
+                farmGrid.appendChild(plot);
+            }
+            
+            // Обновляем UI
+            updateUI();
+            
+            // Настройка магазина
+            const shopItems = document.querySelectorAll('.shop-item');
+            shopItems.forEach(item => {
+                if (item.dataset.item) {
+                    item.addEventListener('click', () => {
+                        selectedItem = item.dataset.item;
+                        document.querySelectorAll('.shop-item').forEach(i => i.style.border = 'none');
+                        item.style.border = '2px solid var(--accent)';
+                    });
+                }
+            });
+            
+            // Настройка модального окна
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
+        }
+        
+        // Обработка клика на участок
+        function handlePlotClick(event) {
+            const plot = event.currentTarget;
+            const index = parseInt(plot.dataset.index);
+            
+            // Проверяем, есть ли уже растение на этом участке
+            const existingPlant = gameData.plants.find(p => p.plotIndex === index);
+            
+            if (existingPlant) {
+                // Если растение требует ухода
+                if (existingPlant.needsAction) {
+                    generateMathProblem(existingPlant);
+                }
+                return;
+            }
+            
+            // Если участок пустой и выбран предмет
+            if (selectedItem && !existingPlant) {
+                // Проверяем достаточно ли денег
+                if (gameData.money >= items[selectedItem].cost) {
+                    // Сажаем растение/животное
+                    plantItem(selectedItem, index);
+                    selectedItem = null;
+                    document.querySelectorAll('.shop-item').forEach(i => i.style.border = 'none');
+                } else {
+                    alert('Недостаточно денег!');
+                }
+            }
+        }
+        
+        // Посадка предмета
+        function plantItem(itemType, plotIndex) {
+            // Вычитаем стоимость
+            gameData.money -= items[itemType].cost;
+            
+            // Создаем объект растения
+            const plant = {
+                type: itemType,
+                plotIndex: plotIndex,
+                plantedTime: Date.now(),
+                lastActionTime: Date.now(),
+                stage: 'growing',
+                needsAction: false,
+                progress: 0
+            };
+            
+            gameData.plants.push(plant);
+            
+            // Обновляем UI
+            updatePlot(plotIndex);
+            updateUI();
+            
+            // Устанавливаем таймер для следующего действия
+            setTimeout(() => {
+                plant.needsAction = true;
+                updatePlot(plotIndex);
+            }, 10000); // Через 10 сек потребуется действие
+        }
+        
+        // Генерация математической задачи
+        function generateMathProblem(plant) {
+            let num1, num2, answer, problem;
+            
+            // В зависимости от уровня сложности
+            if (gameData.level < 3) {
+                // Простые сложение/вычитание
+                num1 = Math.floor(Math.random() * 10) + 5;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                
+                if (Math.random() > 0.5) {
+                    problem = `${num1} + ${num2} = ?`;
+                    answer = num1 + num2;
+                } else {
+                    problem = `${num1} - ${num2} = ?`;
+                    answer = num1 - num2;
+                }
+            } else if (gameData.level < 6) {
+                // Умножение
+                num1 = Math.floor(Math.random() * 8) + 2;
+                num2 = Math.floor(Math.random() * 8) + 2;
+                problem = `${num1} × ${num2} = ?`;
+                answer = num1 * num2;
+            } else {
+                // Деление и проценты
+                if (Math.random() > 0.5) {
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = num1 * (Math.floor(Math.random() * 8) + 2);
+                    problem = `${num2} ÷ ${num1} = ?`;
+                    answer = num2 / num1;
+                } else {
+                    num1 = Math.floor(Math.random() * 90) + 10;
+                    num2 = Math.floor(Math.random() * 40) + 10;
+                    problem = `Сколько будет ${num2}% от ${num1}?`;
+                    answer = Math.round(num1 * num2 / 100);
+                }
+            }
+            
+            // Отображаем задачу
+            const problemText = document.getElementById('problem-text');
+            problemText.textContent = problem;
+            
+            // Генерируем варианты ответов
+            const answerOptions = document.getElementById('answer-options');
+            answerOptions.innerHTML = '';
+            
+            // Создаем правильный и неправильные ответы
+            const answers = [answer];
+            while (answers.length < 4) {
+                const randomAnswer = answer + Math.floor(Math.random() * 10) - 5;
+                if (randomAnswer !== answer && !answers.includes(randomAnswer) && randomAnswer > 0) {
+                    answers.push(randomAnswer);
+                }
+            }
+            
+            // Перемешиваем ответы
+            answers.sort(() => Math.random() - 0.5);
+            
+            // Создаем кнопки
+            answers.forEach(ans => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = ans;
+                button.addEventListener('click', () => checkAnswer(ans, answer, plant));
+                answerOptions.appendChild(button);
+            });
+            
+            // Показываем модальное окно
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('task-modal').style.display = 'flex';
+        }
+        
+        // Проверка ответа
+        function checkAnswer(selected, correct, plant) {
+            const feedback = document.getElementById('feedback');
+            
+            if (selected === correct) {
+                feedback.textContent = 'Правильно! +10 опыта';
+                feedback.className = 'feedback correct';
+                
+                // Награждаем игрока
+                gameData.exp += 10;
+                gameData.correctAnswers++;
+                plant.progress += 33;
+                
+                // Проверяем, готово ли растение
+                if (plant.progress >= 100) {
+                    harvestPlant(plant);
+                } else {
+                    plant.needsAction = false;
+                    plant.lastActionTime = Date.now();
+                    
+                    // Устанавливаем таймер для следующего действия
+                    setTimeout(() => {
+                        plant.needsAction = true;
+                        updatePlot(plant.plotIndex);
+                    }, 10000);
+                }
+                
+                // Проверка достижений
+                checkAchievements();
+                
+                // Обновляем UI
+                updatePlot(plant.plotIndex);
+                updateUI();
+                
+                // Закрываем модальное окно через 1.5 сек
+                setTimeout(closeModal, 1500);
+            } else {
+                feedback.textContent = `Неправильно! Правильный ответ: ${correct}`;
+                feedback.className = 'feedback incorrect';
+                
+                // Штраф - тратим ресурсы
+                gameData.water = Math.max(0, gameData.water - 1);
+                gameData.fertilizer = Math.max(0, gameData.fertilizer - 1);
+                
+                // Обновляем UI
+                updateUI();
+            }
+        }
+        
+        // Сбор урожая
+        function harvestPlant(plant) {
+            // Награда за урожай
+            gameData.money += items[plant.type].reward;
+            
+            // Удаляем растение
+            const index = gameData.plants.findIndex(p => p.plotIndex === plant.plotIndex);
+            if (index !== -1) {
+                gameData.plants.splice(index, 1);
+            }
+            
+            // Обновляем участок
+            const plot = document.querySelector(`.farm-plot[data-index="${plant.plotIndex}"]`);
+            plot.innerHTML = '';
+            plot.classList.remove('planted');
+            
+            // Обновляем UI
+            updateUI();
+            
+            // Проверяем достижение "Первый урожай"
+            if (!gameData.achievements[0]) {
+                gameData.achievements[0] = true;
+                document.getElementById('ach1').classList.remove('locked');
+            }
+        }
+        
+        // Проверка достижений
+        function checkAchievements() {
+            // "Математический гений" (10 правильных ответов)
+            if (gameData.correctAnswers >= 10 && !gameData.achievements[1]) {
+                gameData.achievements[1] = true;
+                document.getElementById('ach2').classList.remove('locked');
+                
+                // Награда
+                gameData.money += 50;
+                gameData.exp += 30;
+            }
+            
+            // "Фермер-бизнесмен" (100 монет)
+            if (gameData.money >= 100 && !gameData.achievements[2]) {
+                gameData.achievements[2] = true;
+                document.getElementById('ach3').classList.remove('locked');
+                
+                // Награда
+                gameData.exp += 50;
+            }
+        }
+        
+        // Обновление участка
+        function updatePlot(index) {
+            const plot = document.querySelector(`.farm-plot[data-index="${index}"]`);
+            const plant = gameData.plants.find(p => p.plotIndex === index);
+            
+            if (!plant) {
+                plot.innerHTML = '';
+                plot.classList.remove('planted');
+                return;
+            }
+            
+            plot.classList.add('planted');
+            
+            let plantHTML = `
+                <div class="plant">
+                    <img src="${items[plant.type].icon}" alt="${items[plant.type].name}">
+                    <div class="progress-bar" style="width: ${plant.progress}%"></div>
+            `;
+            
+            if (plant.needsAction) {
+                plantHTML += `<div class="action-required"></div>`;
+            }
+            
+            plantHTML += `</div>`;
+            plot.innerHTML = plantHTML;
+        }
+        
+        // Обновление UI
+        function updateUI() {
+            // Обновляем статистику
+            document.getElementById('level').textContent = gameData.level;
+            document.getElementById('exp').textContent = gameData.exp;
+            document.getElementById('exp-to-next').textContent = gameData.expToNext;
+            document.getElementById('money').textContent = gameData.money;
+            document.getElementById('water').textContent = gameData.water;
+            document.getElementById('fertilizer').textContent = gameData.fertilizer;
+            
+            // Проверяем уровень
+            if (gameData.exp >= gameData.expToNext) {
+                gameData.level++;
+                gameData.exp = 0;
+                gameData.expToNext = Math.round(gameData.expToNext * 1.5);
+                alert(`Поздравляем! Вы достигли ${gameData.level} уровня!`);
+            }
+        }
+        
+        // Закрытие модального окна
+        function closeModal() {
+            document.getElementById('task-modal').style.display = 'none';
+        }
+        
+        // Запуск игры при загрузке
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
